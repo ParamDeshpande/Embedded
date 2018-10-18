@@ -1,0 +1,45 @@
+//#include "msp.h"
+#include "C:\ti\msp\MSP432Ware_3_50_00_02\driverlib\driverlib\MSP432P4xx\driverlib.h"
+# define PRESSED (0)
+#define NOTPRESSED (1)
+
+#define redLedPin GPIO_PIN0
+#define redLedPort GPIO_PORT_P2
+
+#define switchPin GPIO_PIN1
+#define switchPort GPIO_PORT_P1
+
+uint8_t redLedState=0;
+
+////////////////////SETUP///////////////
+
+	void Setup(void){
+	void switch_Init(void);
+	void redLed_Init(void);
+	GPIO_setOutputLowOnPin(redLedPort, redLedPin);		//Initially low output
+}
+/////////////FUNCTIONS//////////////
+void switch_Init(void){
+	GPIO_setAsInputPinWithPullUpResistor(switchPort, switchPin);
+}
+void redLed_Init(void){
+	GPIO_setAsOutputPin(redLedPort, redLedPin);
+}
+void  debounce(int DEBOUNCE){		//Timer entered will be converted to MS
+	uint32_t  x,y;
+	for(x=0;x<(DEBOUNCE*10);x++){		//Runs for Debounce time
+		for(y=0;y<28;y++);}		//Since 28 = 1 ms
+}
+
+void main(void){
+	WDT_A->CTL = WDT_A_CTL_PW | WDT_A_CTL_HOLD;		// stop watchdog timer
+	Setup();
+	while(1){
+	if(!GPIO_getInputPinValue(switchPort,switchPin)){
+		debounce(100);
+		GPIO_setOutputHighOnPin(redLedPort, redLedPin);
+	}
+
+//		GPIO_setOutputLowOnPin(redLedPort, redLedPin);
+	}
+}
