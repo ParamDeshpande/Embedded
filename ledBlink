@@ -1,0 +1,51 @@
+
+#include "C:\ti\msp\MSP432Ware_3_50_00_02\driverlib\driverlib\MSP432P4xx\driverlib.h"
+#define redLedPin GPIO_PIN0 // Pin 0
+#define redLedPort GPIO_PORT_P2 // Port p2
+///////////////prototypes/////////////////////////////
+void redLedInit(void);
+void timer32Init(void);
+void setup(void);
+void toggle(void);
+void delay(const unsigned);
+///////////////////////////MAIN///////////////////////
+void main(void){
+	WDT_A->CTL = WDT_A_CTL_PW | WDT_A_CTL_HOLD;		// stop watchdog timer
+	setup();
+	while(1){
+	toggle();
+	delay(201);
+	}
+}
+/////////////////////////SETUP////////////////////////////
+void setup (void){
+	redLedInit();
+	GPIO_setOutputLowOnPin(redLedPin , redLedPort);	//sets  default output as off
+}
+///////////////////////FUNCTIONS///////////////////////
+void redLedInit(void){
+	GPIO_setAsInputPin(redLedPin , redLedPort);
+}
+void timer32Init(void){
+	TIMER32_1->LOAD =150000-1;		//50MS TIMER?		//why cant i directly load 10 sec
+	/*  count  = time *clock   */
+	TIMER32_1->CONTROL = 0XC2;	/*counting down with no prescaler , periodic mode , no interrupt  */
+}
+void delay(const unsigned DELAY){
+	uint32_t x;
+	for(x=0 ;x<DELAY;x++){
+		while(	(TIMER32_1->RIS & 1) == 0 );
+		TIMER32_1->INTCLR =0 ;
+	}
+}
+uint8_t redLedState = 0;
+void toggle(void){
+	if(redLedState == 1){				//Led was on now will turn off
+		redLedState = 0;	//Will become 0
+		GPIO_setOutputLowOnPin(redLedPort, redLedPin);
+	}
+else{				//Led was off now will turn on
+		redLedState = 1;	//Will become 1
+		GPIO_setOutputHighOnPin(redLedPort, redLedPin);
+	}
+}
