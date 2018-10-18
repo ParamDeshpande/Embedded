@@ -1,2 +1,2 @@
 # Embedded
-lol
+used TI's armcortex MSP432
