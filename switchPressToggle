@@ -1,0 +1,79 @@
+//#include "msp.h"
+#include "C:\ti\msp\MSP432Ware_3_50_00_02\driverlib\driverlib\MSP432P4xx\driverlib.h"
+# define PRESSED (0)
+#define INSIDE (0)
+#define NOTPRESSED (1)
+#define RELEASED (1)
+
+#define redLedPin GPIO_PIN0
+#define redLedPort GPIO_PORT_P2
+
+#define switchPin GPIO_PIN1
+#define switchPort GPIO_PORT_P1
+
+//uint2_t redLedState ;//? why doesnt it work ? //ans: you hvae to use typedef and enum
+//bool redLedState; //Neither this works
+//bit redLedState;//Nor this
+
+
+uint8_t returnValue =NOTPRESSED;
+////////////////////SETUP///////////////
+
+void setup(void){		//sets up pins and port and initial conditions
+	void switch_Init(void);
+	void redLed_Init(void);
+	returnValue =NOTPRESSED;		//let initially sw be released
+	GPIO_setOutputLowOnPin(redLedPort, redLedPin);		//Initially low output on led pin
+}
+/////////////FUNCTIONS//////////////
+void switch_Init(void){
+	GPIO_setAsInputPinWithPullUpResistor(switchPort, switchPin);
+}
+void redLed_Init(void){
+	GPIO_setAsOutputPin(redLedPort, redLedPin);
+}
+void  debounce(int DEBOUNCE){		//Timer entered will be converted to MS
+	uint32_t  x,y;
+	for(x=0;x<(DEBOUNCE*10);x++){		//Runs for Debounce time
+		for(y=0;y<28;y++);}		//Since 28 = 1 s
+}/*
+void timer(double time){			//Time is in S
+	uint32_t x,y;
+	for(x=0;x<time*10000;x++){
+		for(y=0;y<28;y++);
+	}
+}*/
+static uint8_t redLedState;
+void toggle(){		//toggles led state
+	if(redLedState == 1){				//Led was on now will turn off
+		redLedState = 0;	//Will become 0
+		GPIO_setOutputLowOnPin(redLedPort, redLedPin);
+	}
+else{				//Led was off now will turn on
+		redLedState = 1;	//Will become 1
+		GPIO_setOutputHighOnPin(redLedPort, redLedPin);
+	}
+}
+int getSwitchValue(void){			//takes input adds debounce returns pin value
+	uint8_t swPinValue;
+	swPinValue = GPIO_getInputPinValue(switchPort,switchPin);
+	debounce(100);
+	return swPinValue;
+}
+void main(void){
+	WDT_A->CTL = WDT_A_CTL_PW | WDT_A_CTL_HOLD;		// stop watchdog timer
+	void setup();		//init setup
+
+	while(1){
+
+		if( getSwitchValue()== PRESSED){	//Button pressed
+		while(getSwitchValue() == PRESSED){	//returns inside if button still pressed
+			returnValue = INSIDE;
+			}
+		}
+		else	if(		(returnValue  == INSIDE) && ( getSwitchValue() == NOTPRESSED)){//if previously it was inside and now sw open
+				returnValue = RELEASED;		//returns released
+				toggle();
+				}
+			}
+}
